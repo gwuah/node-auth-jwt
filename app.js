@@ -21,19 +21,32 @@ app.use(require('morgan')('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'passport-tutorial', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
+app.use(session({ 
+  secret: 'passport-tutorial', 
+  cookie: { maxAge: 60000 }, 
+  resave: false, 
+  saveUninitialized: false 
+}));
 
 if(!isProduction) {
   app.use(errorHandler());
 }
 
 //Configure Mongoose
-mongoose.connect('mongodb://localhost/passport-tutorial');
+mongoose.connect('mongodb://localhost:27017/nodeauth', { useNewUrlParser: true });
 mongoose.set('debug', true);
+
+require('./models/User');
+require('./config/passport');
+app.use(require('./routes'));
+
+
 
 //Error handlers & middlewares
 if(!isProduction) {
-  app.use((err, req, res) => {
+  app.use((err, req, res, next) => {
+    console.log(res);
+    
     res.status(err.status || 500);
 
     res.json({
@@ -45,7 +58,7 @@ if(!isProduction) {
   });
 }
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   res.status(err.status || 500);
 
   res.json({
